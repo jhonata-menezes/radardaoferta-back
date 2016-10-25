@@ -94,7 +94,6 @@ func request(urls <-chan string, wg *sync.WaitGroup) {
 	}
 
 	for url := range urls {
-		validUrl(url)
 		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36")
 		req.Header.Set("Accept", "application/json")
@@ -106,10 +105,38 @@ func request(urls <-chan string, wg *sync.WaitGroup) {
 		defer res.Body.Close()
 		target := ProdutoCNova{}
 
-		json.NewDecoder(res.Body).Decode(&target.Detalhes)
+		json.NewDecoder(res.Body).Decode(&target)
 		fmt.Println(target)
 	}
 
+}
+
+func indetifyLoja(url string) string {
+	urlLoja, err := netUrl.Parse(url)
+	if err != nil {
+		panic(err)
+	}
+	switch urlLoja.Host {
+	case "pontofrio.com.br":
+		//
+	case "extra.com.br":
+		//
+	case "casasbahia.com.br":
+		//
+	case "cdiscount.com.br":
+		//
+	case "submarino.com.br":
+		//
+	case "americanas.com.br":
+		//
+	case "shoptime.com.br":
+		//
+	case "soubarato.com.br":
+		//
+	default:
+		//
+	}
+	return ""
 }
 
 func validUrl(url string) bool {
