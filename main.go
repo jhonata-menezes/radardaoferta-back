@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	netUrl "net/url"
 	"os"
 	"sync"
 	"time"
@@ -55,11 +56,11 @@ type ProdutoCNova struct {
 		Categoria        string `json:"CategoryName"`
 		SubCategoria     string `json:"SubCategory"`
 		SubCategoriaNome string `json:"SkuCategoryName"`
-		IDImagemPadrao   string `json:"ImageFileId"`
-		IDImagem130      string `json:"ImageFile130x130Id"`
-		IDImagem45       string `json:"ImageFile45x45Id"`
-		IDImagem90       string `json:"ImageFile90x90Id"`
-		IDImage292       string `json:"ImageFile130x130Id"`
+		IDImagemPadrao   int    `json:"ImageFileId"`
+		IDImagem130      int    `json:"ImageFile130x130Id"`
+		IDImagem45       int    `json:"ImageFile45x45Id"`
+		IDImagem90       int    `json:"ImageFile90x90Id"`
+		IDImagem292      int    `json:"ImageFile292x292Id"`
 	}
 }
 
@@ -69,7 +70,7 @@ func main() {
 	urls := make(chan string, 100)
 	wg.Add(1)
 	go request(urls, &wg)
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1; i++ {
 		urls <- os.Args[1]
 	}
 	close(urls)
@@ -93,6 +94,7 @@ func request(urls <-chan string, wg *sync.WaitGroup) {
 	}
 
 	for url := range urls {
+		validUrl(url)
 		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36")
 		req.Header.Set("Accept", "application/json")
@@ -102,10 +104,19 @@ func request(urls <-chan string, wg *sync.WaitGroup) {
 			panic(err)
 		}
 		defer res.Body.Close()
-		target := ProdutoB2w{}
+		target := ProdutoCNova{}
 
-		json.NewDecoder(res.Body).Decode(&target)
+		json.NewDecoder(res.Body).Decode(&target.Detalhes)
 		fmt.Println(target)
 	}
 
+}
+
+func validUrl(url string) bool {
+	_, err := netUrl.Parse(url)
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
 }
