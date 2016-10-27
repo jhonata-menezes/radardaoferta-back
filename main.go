@@ -13,6 +13,7 @@ import (
 
 //http://product-v3.soubarato.com.br/product?q=itemId:(122256872)&limit=1&paymentOptionIds=CARTAO_VISA,CARTAO_SUBA_MASTERCARD,BOLETO
 type ProdutoB2w struct {
+	Link     string
 	Products []struct {
 		ID      string `json:"id"`
 		Nome    string `json:"name"`
@@ -42,6 +43,7 @@ type ProdutoB2w struct {
 //preco cnova http://preco.api-pontofrio.com.br/V1/Skus/PrecoVenda/?idssku=9195122
 //detalhes cnova http://rec.pontofrio.com.br/productdetails/api/skusdetails/getbyids?ids=9195122
 type ProdutoCNova struct {
+	Link    string
 	Valores []struct {
 		PrecoVenda struct {
 			Preco            float32 `json:"preco"`
@@ -62,6 +64,14 @@ type ProdutoCNova struct {
 		IDImagem90       int    `json:"ImageFile90x90Id"`
 		IDImagem292      int    `json:"ImageFile292x292Id"`
 	}
+}
+
+type ProdutoGenerico struct {
+	Nome    string
+	Valor   float32
+	Imagens []string
+	Link    string
+	Loja    string
 }
 
 func main() {
@@ -116,7 +126,7 @@ func request(urls <-chan string, wg *sync.WaitGroup) {
 
 }
 
-func indetifyLoja(url string) string {
+func identifyLoja(url string) string {
 	urlLoja, err := netUrl.Parse(url)
 	if err != nil {
 		panic(err)
@@ -151,4 +161,20 @@ func validUrl(url string) bool {
 	} else {
 		return true
 	}
+}
+
+func lojaCnovaParaGenerico(p ProdutoCNova) ProdutoGenerico {
+	produto := ProdutoGenerico{}
+	produto.Nome = p.Detalhes[0].NomeProduto
+	produto.Valor = p.Valores[0].PrecoVenda.Preco
+	produto.Loja = identifyLoja(p.Link)
+	produto.Link = p.Link
+	produto.Imagens = []string{
+	//p.Detalhes[0].IDImagem45,
+	//p.Detalhes[0].IDImagem90,
+	//p.Detalhes[0].IDImagem130,
+	//p.Detalhes[0].IDImagem292,
+	//p.Detalhes[0].IDImagemPadrao
+	}
+	return produto
 }
