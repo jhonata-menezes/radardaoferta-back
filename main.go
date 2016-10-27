@@ -72,6 +72,7 @@ func main() {
 	go request(urls, &wg)
 	for i := 0; i < 1; i++ {
 		urls <- os.Args[1]
+		urls <- os.Args[2]
 	}
 	close(urls)
 	wg.Wait()
@@ -80,6 +81,7 @@ func main() {
 
 func request(urls <-chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
+	var url string
 	//proxyUrl, _ := url.Parse("tcp://192.168.56.1:8888")
 	var netTransport = &http.Transport{
 		//Proxy: http.ProxyURL(proxyUrl),
@@ -92,12 +94,15 @@ func request(urls <-chan string, wg *sync.WaitGroup) {
 		Timeout:   time.Second * 5,
 		Transport: netTransport,
 	}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.8,en-US;q=0.6,en;q=0.4,es;q=0.2")
 
-	for url := range urls {
-		req, _ := http.NewRequest("GET", url, nil)
-		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36")
-		req.Header.Set("Accept", "application/json")
-		req.Header.Set("Accept-Language", "pt-BR,pt;q=0.8,en-US;q=0.6,en;q=0.4,es;q=0.2")
+	for url = range urls {
+		u, err := netUrl.Parse(url)
+		req.URL = u
+		req.Host = u.Host
 		res, err := client.Do(req)
 		if err != nil {
 			panic(err)
@@ -118,7 +123,7 @@ func indetifyLoja(url string) string {
 	}
 	switch urlLoja.Host {
 	case "pontofrio.com.br":
-		//
+		return urlLoja.Host
 	case "extra.com.br":
 		//
 	case "casasbahia.com.br":
