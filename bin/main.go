@@ -1,14 +1,13 @@
 package main
 
 import (
-	sopromocao "bitbucket.org/jhonata-menezes/sopromocao-backend"
-	"encoding/json"
 	"fmt"
 	"log"
-	netUrl "net/url"
 	"os"
 	"sync"
 	"time"
+
+	sopromocao "bitbucket.org/jhonata-menezes/sopromocao-backend"
 )
 
 func main() {
@@ -16,7 +15,7 @@ func main() {
 	var wg sync.WaitGroup
 	urls := make(chan string, 100)
 	wg.Add(1)
-	go sopromocao.Processador(urls, &wg)
+	go processador(urls, &wg)
 	for i := 0; i < 1; i++ {
 		urls <- os.Args[1]
 		urls <- os.Args[2]
@@ -34,8 +33,8 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 		p := sopromocao.ProdutoCNova{}
 		p.Link = url
 		u := sopromocao.CnovaUrlToApi(url)
-		sopromocao.request(u[0], &p)
-		sopromocao.request(u[1], &p.Detalhes)
+		sopromocao.Request(u[0], &p)
+		sopromocao.Request(u[1], &p.Detalhes)
 		if len(p.Valores) >= 1 {
 			//Produto := lojaCnovaParaGenerico(p)
 			//fmt.Printf("%#v", Produto)
