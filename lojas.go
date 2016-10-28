@@ -9,6 +9,9 @@ import (
 
 const CnovaPrefixImg = "http://www.casasbahia-imagens.com.br/a/1/"
 
+const GrupoCnova = "cnova"
+const GrupoB2w = "b2w"
+
 //http://product-v3.soubarato.com.br/product?q=itemId:(122256872)&limit=1&paymentOptionIds=CARTAO_VISA,CARTAO_SUBA_MASTERCARD,BOLETO
 type ProdutoB2w struct {
 	Link     string
@@ -73,33 +76,19 @@ type ProdutoGenerico struct {
 	Loja      string
 }
 
-func IdentifyNomeLoja(url string) string {
+func IdentifyNomeLoja(url string) (string, string) {
 	urlLoja, err := netUrl.Parse(url)
 	if err != nil {
 		panic(err)
 	}
-	return urlLoja.Host
 	switch urlLoja.Host {
-	case "pontofrio.com.br":
-		return urlLoja.Host
-	case "extra.com.br":
-		//
-	case "casasbahia.com.br":
-		//
-	case "cdiscount.com.br":
-		//
-	case "submarino.com.br":
-		//
-	case "americanas.com.br":
-		//
-	case "shoptime.com.br":
-		//
-	case "soubarato.com.br":
-		//
+	case "pontofrio.com.br", "extra.com.br", "casasbahia.com.br", "cdiscount.com.br", "www.pontofrio.com.br", "www.extra.com.br", "www.casasbahia.com.br", "www.cdiscount.com.br":
+		return urlLoja.Host, GrupoCnova
+	case "submarino.com.br", "americanas.com.br", "shoptime.com.br", "soubarato.com.br", "www.submarino.com.br", "www.americanas.com.br", "www.shoptime.com.br", "www.soubarato.com.br":
+		return urlLoja.Host, GrupoB2w
 	default:
-		//
+		return "", ""
 	}
-	return ""
 }
 
 func ValidUrl(url string) bool {
@@ -129,6 +118,18 @@ func IdentifyCodProdutoCnova(url string) string {
 	return "0"
 }
 
+func IdentifyCodProdutoB2w(url string) string {
+	a, err := regexp.Compile("produto\\/([0-9]+)\\/?\\??")
+	if err != nil {
+		panic(err)
+	}
+	result := a.FindStringSubmatch(url)
+	if len(result) >= 2 {
+		return result[1]
+	}
+	return "0"
+}
+
 func CnovaUrlToApi(url string) []string {
 	cod := IdentifyCodProdutoCnova(url)
 	return []string{
@@ -138,12 +139,18 @@ func CnovaUrlToApi(url string) []string {
 
 }
 
+func B2wUrlToApi(url string) string {
+	cod := IdentifyCodProdutoB2w(url)
+	return fmt.Sprintf("http://product-v3.soubarato.com.br/product?q=itemId:(%s)&limit=1&paymentOptionIds=CARTAO_VISA,CARTAO_SUBA_MASTERCARD,BOLETO", cod)
+}
+
 func LojaCnovaParaGenerico(p ProdutoCNova) ProdutoGenerico {
 	produto := ProdutoGenerico{}
+	nomeLoja, _ := IdentifyNomeLoja(p.Link)
 	produto.IDProduto = IdentifyCodProdutoCnova(p.Link)
 	produto.Nome = p.Detalhes[0].NomeProduto
 	produto.Valor = p.Valores[0].PrecoVenda.Preco
-	produto.Loja = IdentifyNomeLoja(p.Link)
+	produto.Loja = nomeLoja
 	produto.Link = p.Link
 	produto.Imagens = []string{
 		LojaCnovaImagemMount(p.Detalhes[0].IDImagem45, produto.IDProduto),
@@ -151,6 +158,20 @@ func LojaCnovaParaGenerico(p ProdutoCNova) ProdutoGenerico {
 		LojaCnovaImagemMount(p.Detalhes[0].IDImagem130, produto.IDProduto),
 		LojaCnovaImagemMount(p.Detalhes[0].IDImagem292, produto.IDProduto),
 		LojaCnovaImagemMount(p.Detalhes[0].IDImagemPadrao, produto.IDProduto),
+	}
+	return produto
+}
+
+func LojaB2wParaGenerico(p ProdutoB2w) ProdutoGenerico {
+	produto := ProdutoGenerico{}
+	nomeLoja, _ := IdentifyNomeLoja(p.Link)
+	produto.IDProduto = IdentifyCodProdutoB2w(p.Link)
+	produto.Nome = p.Products[0].Nome
+	produto.Valor = p.Products[0].Offers[0].PaymentOptions.Boleto.Price
+	produto.Loja = nomeLoja
+	produto.Link = p.Link
+	for _, u := range p.Products[0].Imagens {
+		produto.Imagens = append(produto.Imagens, u.Medium)
 	}
 	return produto
 }
