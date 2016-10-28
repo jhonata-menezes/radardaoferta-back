@@ -1,4 +1,4 @@
-package sopromocao-backend
+package sopromocao
 
 import(
     "net/http"
