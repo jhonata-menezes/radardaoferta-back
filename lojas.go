@@ -1,9 +1,10 @@
 package sopromocao
 
-import(
-    "regexp"
-    netUrl "net/url"
-    "fmt"
+import (
+	"fmt"
+	netUrl "net/url"
+	"regexp"
+	"strconv"
 )
 
 const CnovaPrefixImg = "http://www.casasbahia-imagens.com.br/a/1/"
@@ -71,9 +72,6 @@ type ProdutoGenerico struct {
 	Link      string
 	Loja      string
 }
-
-
-
 
 func IdentifyNomeLoja(url string) string {
 	urlLoja, err := netUrl.Parse(url)
@@ -156,4 +154,3 @@ func LojaCnovaParaGenerico(p ProdutoCNova) ProdutoGenerico {
 	}
 	return produto
 }
-
