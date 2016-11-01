@@ -1,34 +1,49 @@
 package main
 
+//key: value fmt.Printf("%#v", Produto)
+
 import (
+	"encoding/json"
 	"fmt"
 	"log"
-	"os"
+	"net/http"
 	"sync"
-	"time"
 
 	sopromocao "bitbucket.org/jhonata-menezes/sopromocao-backend"
+	"github.com/gorilla/mux"
 )
 
+var produtosJson []byte
+var produtosCollection []sopromocao.ProdutoGenerico
+var chanUrls chan string
+
 func main() {
-	inicio := time.Now()
 	var wg sync.WaitGroup
-	urls := make(chan string, 100)
+	chanUrls = make(chan string, 400)
 	wg.Add(1)
-	go processador(urls, &wg)
-	for i := 0; i < 1; i++ {
-		urls <- os.Args[1]
-	}
-	close(urls)
-	wg.Wait()
-	fmt.Println(time.Since(inicio))
+	go processador(chanUrls, &wg)
+	//close(urls)
+	//wg.Wait()
+
+	json, _ := json.Marshal(sopromocao.ProdutoGenerico{})
+	produtosJson = json
+
+	router := mux.NewRouter().StrictSlash(true)
+
+	router.HandleFunc("/api/produtos", getProduto).Methods("GET")
+	router.HandleFunc("/api/produtos/novo", postNovoProduto).Methods("POST")
+	router.NotFoundHandler = http.HandlerFunc(http404)
+
+	fmt.Println("GO!")
+	http.ListenAndServe("0.0.0.0:5014", router)
 }
 
 func processador(urls <-chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
+	var nomeLoja, grupoLoja string
 
 	for url := range urls {
-		nomeLoja, grupoLoja := sopromocao.IdentifyNomeLoja(url)
+		nomeLoja, grupoLoja = sopromocao.IdentifyNomeLoja(url)
 		fmt.Println(nomeLoja, grupoLoja)
 		if grupoLoja == sopromocao.GrupoCnova {
 			p := sopromocao.ProdutoCNova{}
@@ -37,9 +52,8 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 			sopromocao.Request(u[0], &p)
 			sopromocao.Request(u[1], &p.Detalhes)
 			if len(p.Valores) >= 1 {
-				//Produto := lojaCnovaParaGenerico(p)
-				//fmt.Printf("%#v", Produto)
-				//key: value fmt.Printf("%#v", Produto)
+				Produto := sopromocao.LojaCnovaParaGenerico(p)
+				mesclaGenericoParaJSON(Produto)
 			} else {
 				log.Println("URL informada nao existe", url)
 			}
@@ -50,8 +64,7 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 			sopromocao.Request(u, &p)
 			if len(p.Products) >= 1 {
 				Produto := sopromocao.LojaB2wParaGenerico(p)
-				fmt.Printf("%#v", Produto)
-				//key: value fmt.Printf("%#v", Produto)
+				mesclaGenericoParaJSON(Produto)
 			} else {
 				log.Println("URL informada nao existe", url)
 			}
@@ -59,5 +72,30 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 			fmt.Println("nao foi identificado o site", url)
 		}
 	}
+}
 
+func getProduto(w http.ResponseWriter, r *http.Request) {
+	w.Write(produtosJson)
+}
+
+func postNovoProduto(w http.ResponseWriter, r *http.Request) {
+	url := r.FormValue("url")
+	chanUrls <- url
+
+	w.Write([]byte("{\"status\":\"ok\"}"))
+}
+
+func http404(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("404"))
+}
+
+func mesclaGenericoParaJSON(p sopromocao.ProdutoGenerico) {
+	//fmt.Printf("%#v", p)
+	produtosCollection = append(produtosCollection, p)
+	//fmt.Printf("%#v", produtosCollection)
+	json, err := json.Marshal(produtosCollection)
+	if err != nil {
+		panic(err)
+	}
+	produtosJson = json
 }

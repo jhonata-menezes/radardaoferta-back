@@ -131,17 +131,48 @@ func IdentifyCodProdutoB2w(url string) string {
 }
 
 func CnovaUrlToApi(url string) []string {
+	dominio := nomeSimplesLoja(url)
 	cod := IdentifyCodProdutoCnova(url)
 	return []string{
-		fmt.Sprintf("http://preco.api-pontofrio.com.br/V1/Skus/PrecoVenda/?idssku=%s", cod),
-		fmt.Sprintf("http://rec.pontofrio.com.br/productdetails/api/skusdetails/getbyids?ids=%s", cod),
+		fmt.Sprintf("http://preco.api-%s.com.br/V1/Skus/PrecoVenda/?idssku=%s", dominio, cod),
+		fmt.Sprintf("http://rec.%s.com.br/productdetails/api/skusdetails/getbyids?ids=%s", dominio, cod),
 	}
 
 }
 
+func nomeSimplesLoja(url string) string {
+	urlLoja, err := netUrl.Parse(url)
+	if err != nil {
+		panic(err)
+	}
+	var dominio string
+	switch urlLoja.Host {
+	case "submarino.com.br", "www.submarino.com.br":
+		dominio = "submarino"
+	case "americanas.com.br", "www.americanas.com.br":
+		dominio = "americanas"
+	case "shoptime.com.br", "www.shoptime.com.br":
+		dominio = "shoptime"
+	case "soubarato.com.br", "www.soubarato.com.br":
+		dominio = "soubarato"
+	case "pontofrio.com.br", "www.pontofrio.com.br":
+		dominio = "pontofrio"
+	case "extra.com.br", "www.extra.com.br":
+		dominio = "extra"
+	case "casasbahia.com.br", "www.casasbahia.com.br":
+		dominio = "casasbahia"
+	case "cdiscount.com.br", "www.cdiscount.com.br":
+		dominio = "cdiscount"
+	default:
+		dominio = ""
+	}
+	return dominio
+}
+
 func B2wUrlToApi(url string) string {
+	dominio := nomeSimplesLoja(url)
 	cod := IdentifyCodProdutoB2w(url)
-	return fmt.Sprintf("http://product-v3.soubarato.com.br/product?q=itemId:(%s)&limit=1&paymentOptionIds=CARTAO_VISA,CARTAO_SUBA_MASTERCARD,BOLETO", cod)
+	return fmt.Sprintf("http://product-v3.%s.com.br/product?q=itemId:(%s)&limit=1&paymentOptionIds=CARTAO_VISA,CARTAO_SUBA_MASTERCARD,BOLETO", dominio, cod)
 }
 
 func LojaCnovaParaGenerico(p ProdutoCNova) ProdutoGenerico {
@@ -171,7 +202,7 @@ func LojaB2wParaGenerico(p ProdutoB2w) ProdutoGenerico {
 	produto.Loja = nomeLoja
 	produto.Link = p.Link
 	for _, u := range p.Products[0].Imagens {
-		produto.Imagens = append(produto.Imagens, u.Medium)
+		produto.Imagens = append(produto.Imagens, u.Large)
 	}
 	return produto
 }
