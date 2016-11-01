@@ -131,7 +131,7 @@ func IdentifyCodProdutoB2w(url string) string {
 }
 
 func CnovaUrlToApi(url string) []string {
-	dominio := nomeSimplesLoja(url)
+	dominio := NomeSimplesLoja(url)
 	cod := IdentifyCodProdutoCnova(url)
 	return []string{
 		fmt.Sprintf("http://preco.api-%s.com.br/V1/Skus/PrecoVenda/?idssku=%s", dominio, cod),
@@ -140,7 +140,7 @@ func CnovaUrlToApi(url string) []string {
 
 }
 
-func nomeSimplesLoja(url string) string {
+func NomeSimplesLoja(url string) string {
 	urlLoja, err := netUrl.Parse(url)
 	if err != nil {
 		panic(err)
@@ -170,14 +170,14 @@ func nomeSimplesLoja(url string) string {
 }
 
 func B2wUrlToApi(url string) string {
-	dominio := nomeSimplesLoja(url)
+	dominio := NomeSimplesLoja(url)
 	cod := IdentifyCodProdutoB2w(url)
 	return fmt.Sprintf("http://product-v3.%s.com.br/product?q=itemId:(%s)&limit=1&paymentOptionIds=CARTAO_VISA,CARTAO_SUBA_MASTERCARD,BOLETO", dominio, cod)
 }
 
 func LojaCnovaParaGenerico(p ProdutoCNova) ProdutoGenerico {
 	produto := ProdutoGenerico{}
-	nomeLoja, _ := IdentifyNomeLoja(p.Link)
+	nomeLoja := NomeSimplesLoja(p.Link)
 	produto.IDProduto = IdentifyCodProdutoCnova(p.Link)
 	produto.Nome = p.Detalhes[0].NomeProduto
 	produto.Valor = p.Valores[0].PrecoVenda.Preco
@@ -195,7 +195,7 @@ func LojaCnovaParaGenerico(p ProdutoCNova) ProdutoGenerico {
 
 func LojaB2wParaGenerico(p ProdutoB2w) ProdutoGenerico {
 	produto := ProdutoGenerico{}
-	nomeLoja, _ := IdentifyNomeLoja(p.Link)
+	nomeLoja := NomeSimplesLoja(p.Link)
 	produto.IDProduto = IdentifyCodProdutoB2w(p.Link)
 	produto.Nome = p.Products[0].Nome
 	produto.Valor = p.Products[0].Offers[0].PaymentOptions.Boleto.Price
