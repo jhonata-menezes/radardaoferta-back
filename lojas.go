@@ -68,12 +68,12 @@ type ProdutoCNova struct {
 }
 
 type ProdutoGenerico struct {
-	IDProduto string
-	Nome      string
-	Valor     float32
-	Imagens   []string
-	Link      string
-	Loja      string
+	IDProduto string   `json:"idProduto"`
+	Nome      string   `json:"nome"`
+	Valor     float32  `json:"valor"`
+	Imagens   []string `json:"imagens"`
+	Link      string   `json:"link"`
+	Loja      string   `json:"loja"`
 }
 
 func IdentifyNomeLoja(url string) (string, string) {
