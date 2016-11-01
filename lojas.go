@@ -68,7 +68,7 @@ type ProdutoCNova struct {
 }
 
 type ProdutoGenerico struct {
-	IDProduto string   `json:"idProduto"`
+	IDProduto string   `json:"idProduto" bson:"idProduto"`
 	Nome      string   `json:"nome"`
 	Valor     float32  `json:"valor"`
 	Imagens   []string `json:"imagens"`
@@ -130,16 +130,6 @@ func IdentifyCodProdutoB2w(url string) string {
 	return "0"
 }
 
-func CnovaUrlToApi(url string) []string {
-	dominio := NomeSimplesLoja(url)
-	cod := IdentifyCodProdutoCnova(url)
-	return []string{
-		fmt.Sprintf("http://preco.api-%s.com.br/V1/Skus/PrecoVenda/?idssku=%s", dominio, cod),
-		fmt.Sprintf("http://rec.%s.com.br/productdetails/api/skusdetails/getbyids?ids=%s", dominio, cod),
-	}
-
-}
-
 func NomeSimplesLoja(url string) string {
 	urlLoja, err := netUrl.Parse(url)
 	if err != nil {
@@ -167,6 +157,16 @@ func NomeSimplesLoja(url string) string {
 		dominio = ""
 	}
 	return dominio
+}
+
+func CnovaUrlToApi(url string) []string {
+	dominio := NomeSimplesLoja(url)
+	cod := IdentifyCodProdutoCnova(url)
+	return []string{
+		fmt.Sprintf("http://preco.api-%s.com.br/V1/Skus/PrecoVenda/?idssku=%s", dominio, cod),
+		fmt.Sprintf("http://rec.%s.com.br/productdetails/api/skusdetails/getbyids?ids=%s", dominio, cod),
+	}
+
 }
 
 func B2wUrlToApi(url string) string {

@@ -11,11 +11,14 @@ import (
 
 	sopromocao "bitbucket.org/jhonata-menezes/sopromocao-backend"
 	"github.com/gorilla/mux"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var produtosJson []byte
 var produtosCollection []sopromocao.ProdutoGenerico
 var chanUrls chan string
+var connMongo *mgo.Session
 
 func main() {
 	var wg sync.WaitGroup
@@ -25,12 +28,30 @@ func main() {
 	//close(urls)
 	//wg.Wait()
 
-	json, _ := json.Marshal(sopromocao.ProdutoGenerico{})
+	c, err := mgo.Dial("localhost")
+	if err != nil {
+		panic(err)
+	}
+
+	defer c.Close()
+	c.SetMode(mgo.Monotonic, true)
+
+	connMongo = c
+
+	coll := produtosColl()
+	err = coll.Find(bson.M{}).Limit(30).All(&produtosCollection)
+	if err != nil {
+		panic(err)
+	}
+	json, err := json.Marshal(produtosCollection)
+	if err != nil {
+		panic(err)
+	}
 	produtosJson = json
 
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/api/produtos", getProduto).Methods("GET")
+	router.HandleFunc("/api/produtos/", getProduto).Methods("GET")
 	router.HandleFunc("/api/produtos/novo", postNovoProduto).Methods("POST")
 	router.NotFoundHandler = http.HandlerFunc(http404)
 
@@ -90,12 +111,29 @@ func http404(w http.ResponseWriter, r *http.Request) {
 }
 
 func mesclaGenericoParaJSON(p sopromocao.ProdutoGenerico) {
-	//fmt.Printf("%#v", p)
-	produtosCollection = append(produtosCollection, p)
-	//fmt.Printf("%#v", produtosCollection)
-	json, err := json.Marshal(produtosCollection)
+	coll := produtosColl()
+	cnt, err := coll.Find(bson.M{"loja": p.Loja, "idProduto": p.IDProduto}).Count()
 	if err != nil {
 		panic(err)
 	}
-	produtosJson = json
+	if cnt == 0 {
+		err := coll.Insert(p)
+		if err != nil {
+			panic(err)
+		}
+		err = coll.Find(bson.M{}).Limit(30).All(&produtosCollection)
+		if err != nil {
+			panic(err)
+		}
+		json, err := json.Marshal(produtosCollection)
+		if err != nil {
+			panic(err)
+		}
+		produtosJson = json
+	}
+}
+
+func produtosColl() *mgo.Collection {
+	conn := connMongo.Copy()
+	return conn.DB("sopromocao").C("produtos")
 }
