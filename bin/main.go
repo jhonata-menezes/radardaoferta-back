@@ -116,7 +116,7 @@ func postNovoProduto(w http.ResponseWriter, r *http.Request) {
 	}
 	err := json.NewDecoder(r.Body).Decode(&bodyUrl)
 	if err != nil {
-		http.Error(w, "corpo da solicitacao vazio", 400)
+		http.Error(w, "json invalido", 400)
 		return
 	}
 
@@ -126,7 +126,7 @@ func postNovoProduto(w http.ResponseWriter, r *http.Request) {
 }
 
 func http404(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("404"))
+	http.Error(w, "", 404)
 }
 
 func mesclaGenericoParaJSON(p sopromocao.ProdutoGenerico) {
@@ -159,5 +159,5 @@ func produtosColl() *mgo.Collection {
 
 func responseDefault(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 }
