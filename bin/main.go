@@ -50,8 +50,8 @@ func main() {
 	produtosJson = json
 
 	router := mux.NewRouter().StrictSlash(true)
-
-	router.HandleFunc("/api/produtos/", getProduto).Methods("GET")
+	router.Headers("Access-Control-Allow-Origin", "*")
+	router.HandleFunc("/api/produtos", getProduto).Methods("GET")
 	router.HandleFunc("/api/produtos/novo", postNovoProduto).Methods("POST")
 	router.NotFoundHandler = http.HandlerFunc(http404)
 
@@ -96,10 +96,12 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 }
 
 func getProduto(w http.ResponseWriter, r *http.Request) {
+	responseDefault(w)
 	w.Write(produtosJson)
 }
 
 func postNovoProduto(w http.ResponseWriter, r *http.Request) {
+	responseDefault(w)
 	url := r.FormValue("url")
 	chanUrls <- url
 
@@ -136,4 +138,9 @@ func mesclaGenericoParaJSON(p sopromocao.ProdutoGenerico) {
 func produtosColl() *mgo.Collection {
 	conn := connMongo.Copy()
 	return conn.DB("sopromocao").C("produtos")
+}
+
+func responseDefault(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 }
