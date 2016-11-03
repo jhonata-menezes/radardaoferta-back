@@ -50,7 +50,12 @@ func main() {
 	produtosJson = json
 
 	router := mux.NewRouter().StrictSlash(true)
-	router.Headers("Access-Control-Allow-Origin", "*")
+	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Del("Content-Type")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, content-type, x-correlation-id, Origin, Host, User-Agent, Access-Control-Request-Headers, Referer, Connection, Accept, Accept-Language, Access-Control-Request-Method, Accept-Encoding")
+		//responseDefault(w)
+	})
 	router.HandleFunc("/api/produtos", getProduto).Methods("GET")
 	router.HandleFunc("/api/produtos/novo", postNovoProduto).Methods("POST")
 	router.NotFoundHandler = http.HandlerFunc(http404)
@@ -102,8 +107,20 @@ func getProduto(w http.ResponseWriter, r *http.Request) {
 
 func postNovoProduto(w http.ResponseWriter, r *http.Request) {
 	responseDefault(w)
-	url := r.FormValue("url")
-	chanUrls <- url
+	if r.Body == nil {
+		http.Error(w, "corpo da solicitacao vazio", 400)
+		return
+	}
+	var bodyUrl struct {
+		Url string
+	}
+	err := json.NewDecoder(r.Body).Decode(&bodyUrl)
+	if err != nil {
+		http.Error(w, "corpo da solicitacao vazio", 400)
+		return
+	}
+
+	chanUrls <- bodyUrl.Url
 
 	w.Write([]byte("{\"status\":\"ok\"}"))
 }
