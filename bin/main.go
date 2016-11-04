@@ -19,6 +19,7 @@ var produtosJson []byte
 var produtosCollection []sopromocao.ProdutoGenerico
 var chanUrls chan string
 var connMongo *mgo.Session
+var limitProdutos = 50
 
 func main() {
 	var wg sync.WaitGroup
@@ -39,7 +40,7 @@ func main() {
 	connMongo = c
 
 	coll := produtosColl()
-	err = coll.Find(bson.M{}).Limit(30).All(&produtosCollection)
+	err = coll.Find(bson.M{}).Limit(limitProdutos).Sort("-_id").All(&produtosCollection)
 	if err != nil {
 		panic(err)
 	}
@@ -140,7 +141,7 @@ func mesclaGenericoParaJSON(p sopromocao.ProdutoGenerico) {
 		if err != nil {
 			panic(err)
 		}
-		err = coll.Find(bson.M{}).Limit(30).All(&produtosCollection)
+		err = coll.Find(bson.M{}).Limit(limitProdutos).Sort("-_id").All(&produtosCollection)
 		if err != nil {
 			panic(err)
 		}
