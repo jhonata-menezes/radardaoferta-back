@@ -184,10 +184,10 @@ func LojaCnovaParaGenerico(p ProdutoCNova) ProdutoGenerico {
 	produto.Loja = nomeLoja
 	produto.Link = p.Link
 	produto.Imagens = []string{
+		LojaCnovaImagemMount(p.Detalhes[0].IDImagem292, produto.IDProduto),
 		LojaCnovaImagemMount(p.Detalhes[0].IDImagem45, produto.IDProduto),
 		LojaCnovaImagemMount(p.Detalhes[0].IDImagem90, produto.IDProduto),
 		LojaCnovaImagemMount(p.Detalhes[0].IDImagem130, produto.IDProduto),
-		LojaCnovaImagemMount(p.Detalhes[0].IDImagem292, produto.IDProduto),
 		LojaCnovaImagemMount(p.Detalhes[0].IDImagemPadrao, produto.IDProduto),
 	}
 	return produto
