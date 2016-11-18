@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"sync"
 
+	"flag"
+
 	sopromocao "bitbucket.org/jhonata-menezes/sopromocao-backend"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
@@ -22,6 +24,11 @@ var connMongo *mgo.Session
 var limitProdutos = 50
 
 func main() {
+	var host string
+	var port string
+	flag.StringVar(&host, "host", "127.0.0.1", "interface")
+	flag.StringVar(&port, "port", "5001", "porta")
+	flag.Parse()
 	var wg sync.WaitGroup
 	chanUrls = make(chan string, 400)
 	wg.Add(1)
@@ -61,8 +68,8 @@ func main() {
 	router.HandleFunc("/api/produtos/novo", postNovoProduto).Methods("POST")
 	router.NotFoundHandler = http.HandlerFunc(http404)
 
-	fmt.Println("GO!")
-	http.ListenAndServe("0.0.0.0:5014", router)
+	fmt.Println("GO! http://" + host + ":" + port)
+	http.ListenAndServe(host+":"+port, router)
 }
 
 func processador(urls <-chan string, wg *sync.WaitGroup) {
