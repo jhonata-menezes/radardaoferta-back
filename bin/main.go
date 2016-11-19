@@ -116,7 +116,8 @@ func getProduto(w http.ResponseWriter, r *http.Request) {
 func postNovoProduto(w http.ResponseWriter, r *http.Request) {
 	responseDefault(w)
 	if r.Body == nil {
-		http.Error(w, "corpo da solicitacao vazio", 400)
+		w.Write([]byte("{\"status\": \"error\", \"msg\":\"corpo da solicitacao vazio\"}"))
+		http.Error(w, "", 400)
 		return
 	}
 	var bodyUrl struct {
@@ -124,7 +125,13 @@ func postNovoProduto(w http.ResponseWriter, r *http.Request) {
 	}
 	err := json.NewDecoder(r.Body).Decode(&bodyUrl)
 	if err != nil {
-		http.Error(w, "json invalido", 400)
+		w.Write([]byte("{\"status\": \"error\", \"msg\":\"json invalido\"}"))
+		http.Error(w, "", 400)
+		return
+	}
+	urlValidator, _ := sopromocao.IdentifyNomeLoja(bodyUrl.Url)
+	if urlValidator == "" {
+		w.Write([]byte("{\"status\":\"error\", \"msg\": \"URL Invalida, por favor informe apenas urls de ecommerce da lista\"}"))
 		return
 	}
 

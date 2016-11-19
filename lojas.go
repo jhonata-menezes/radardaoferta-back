@@ -80,6 +80,7 @@ func IdentifyNomeLoja(url string) (string, string) {
 	urlLoja, err := netUrl.Parse(url)
 	if err != nil {
 		panic(err)
+		return "", ""
 	}
 	switch urlLoja.Host {
 	case "pontofrio.com.br", "extra.com.br", "casasbahia.com.br", "cdiscount.com.br", "www.pontofrio.com.br", "www.extra.com.br", "www.casasbahia.com.br", "www.cdiscount.com.br":
