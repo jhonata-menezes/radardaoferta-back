@@ -74,6 +74,7 @@ type ProdutoGenerico struct {
 	Imagens   []string `json:"imagens"`
 	Link      string   `json:"link"`
 	Loja      string   `json:"loja"`
+	Created   string
 }
 
 func IdentifyNomeLoja(url string) (string, string) {
