@@ -12,6 +12,8 @@ import (
 
 	"flag"
 
+	"strings"
+
 	sopromocao "bitbucket.org/jhonata-menezes/sopromocao-backend"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
@@ -78,6 +80,7 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 	var nomeLoja, grupoLoja string
 
 	for url := range urls {
+		url = strings.Replace(url, "www.", "", -1)
 		nomeLoja, grupoLoja = sopromocao.IdentifyNomeLoja(url)
 		fmt.Println(nomeLoja, grupoLoja)
 		if grupoLoja == sopromocao.GrupoCnova {
