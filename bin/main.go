@@ -7,12 +7,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"flag"
-
-	"strings"
 
 	sopromocao "bitbucket.org/jhonata-menezes/sopromocao-backend"
 	"github.com/gorilla/mux"
@@ -80,7 +79,6 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 	var nomeLoja, grupoLoja string
 
 	for url := range urls {
-		url = strings.Replace(url, "www.", "", 1)
 		nomeLoja, grupoLoja = sopromocao.IdentifyNomeLoja(url)
 		fmt.Println(nomeLoja, grupoLoja)
 		if grupoLoja == sopromocao.GrupoCnova {
@@ -135,6 +133,7 @@ func postNovoProduto(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", 400)
 		return
 	}
+	bodyUrl.Url = strings.Replace(bodyUrl.Url, "www.", "", 1)
 	urlValidator, _ := sopromocao.IdentifyNomeLoja(bodyUrl.Url)
 	if urlValidator == "" {
 		w.Write([]byte("{\"status\":\"error\", \"msg\": \"URL Invalida, por favor informe apenas urls de ecommerce da lista\"}"))
