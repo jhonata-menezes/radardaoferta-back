@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"flag"
 
@@ -87,6 +88,7 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 			sopromocao.Request(u[1], &p.Detalhes)
 			if len(p.Valores) >= 1 {
 				Produto := sopromocao.LojaCnovaParaGenerico(p)
+				Produto.Created = time.Now().Format("2006-01-02 15:04:05")
 				mesclaGenericoParaJSON(Produto)
 			} else {
 				log.Println("URL informada nao existe", url)
@@ -98,6 +100,7 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 			sopromocao.Request(u, &p)
 			if len(p.Products) >= 1 {
 				Produto := sopromocao.LojaB2wParaGenerico(p)
+				Produto.Created = time.Now().Format("2006-01-02 15:04:05")
 				mesclaGenericoParaJSON(Produto)
 			} else {
 				log.Println("URL informada nao existe", url)
