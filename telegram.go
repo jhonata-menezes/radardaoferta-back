@@ -26,7 +26,7 @@ func ShowTelegram(urls chan string) {
 		if validator.Host == "" {
 			msg = message.Sender.FirstName + " desculpa, mas nao foi possivel identifica link do produto, para que possa ser identificado envie apenas o link."
 		} else {
-			msg = message.Sender.FirstName + " muito obrigado por compartilhar, irei processar e publicar no site http://www.radardaoferta.com.br/"
+			msg = message.Sender.FirstName + " muito obrigado por compartilhar, irei processar e posteriormente publicar no site http://www.radardaoferta.com.br/"
 			urls <- message.Text
 		}
 		bot.SendMessage(message.Chat, msg, nil)
