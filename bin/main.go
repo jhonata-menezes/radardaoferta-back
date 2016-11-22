@@ -35,6 +35,7 @@ func main() {
 	chanUrls = make(chan string, 400)
 	wg.Add(1)
 	go processador(chanUrls, &wg)
+	go sopromocao.ShowTelegram(chanUrls)
 	//close(urls)
 	//wg.Wait()
 
