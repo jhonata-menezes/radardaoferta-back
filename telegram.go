@@ -8,8 +8,10 @@ import (
 	"github.com/tucnak/telebot"
 )
 
+//dev
+//prod 233668925:AAFFwfhIY292fmTxKZgFjcFDsCF9FpwZVQ0
 func ShowTelegram(urls chan string) {
-	bot, err := telebot.NewBot("233668925:AAFFwfhIY292fmTxKZgFjcFDsCF9FpwZVQ0")
+	bot, err := telebot.NewBot("278478343:AAGXj08TDDnM6_fv7yiZNK78ZkE-UH9Zges")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -19,7 +21,7 @@ func ShowTelegram(urls chan string) {
 	var msg string
 	for message := range messages {
 		log.Println("new message ", message.Sender.FirstName, "ID", message.Sender.ID)
-		validator, err := url.Parse(message.Text)
+		validator, err := url.Parse(CleanUrl(message.Text))
 		if err != nil {
 			panic(err)
 		}

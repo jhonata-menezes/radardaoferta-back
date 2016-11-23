@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -69,6 +68,7 @@ func main() {
 	})
 	router.HandleFunc("/api/produtos", getProduto).Methods("GET")
 	router.HandleFunc("/api/produtos/novo", postNovoProduto).Methods("POST")
+	router.HandleFunc("/api/produtos/redirecionar/{id}", getRedirecionar).Methods("GET")
 	router.NotFoundHandler = http.HandlerFunc(http404)
 
 	fmt.Println("GO! http://" + host + ":" + port)
@@ -134,7 +134,7 @@ func postNovoProduto(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", 400)
 		return
 	}
-	bodyUrl.Url = strings.Replace(bodyUrl.Url, "www.", "", 1)
+	bodyUrl.Url = sopromocao.CleanUrl(bodyUrl.Url)
 	urlValidator, _ := sopromocao.IdentifyNomeLoja(bodyUrl.Url)
 	if urlValidator == "" {
 		w.Write([]byte("{\"status\":\"error\", \"msg\": \"URL Invalida, por favor informe apenas urls de ecommerce da lista\"}"))
@@ -144,6 +144,31 @@ func postNovoProduto(w http.ResponseWriter, r *http.Request) {
 	chanUrls <- bodyUrl.Url
 
 	w.Write([]byte("{\"status\":\"ok\"}"))
+}
+
+func getRedirecionar(w http.ResponseWriter, r *http.Request) {
+	idProdutoMongo := mux.Vars(r)["id"]
+	if len(idProdutoMongo) != 12 {
+		http.Error(w, "", 404)
+		return
+	}
+	produtosStruct := sopromocao.ProdutoGenerico{}
+
+	collection := produtosColl()
+	query := collection.FindId(bson.ObjectIdHex(idProdutoMongo))
+	count, err := query.Count()
+	if count == 0 {
+		http.Error(w, "", 404)
+		return
+	}
+	query.One(&produtosStruct)
+	w.Header().Set("Location", produtosStruct.Link)
+	w.Write([]byte(""))
+
+	err = collection.UpdateId(bson.ObjectIdHex(idProdutoMongo), bson.M{"$set": bson.M{"cliques": (produtosStruct.Cliques + 1)}})
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func http404(w http.ResponseWriter, r *http.Request) {

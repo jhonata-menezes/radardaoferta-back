@@ -5,6 +5,9 @@ import (
 	netUrl "net/url"
 	"regexp"
 	"strconv"
+	"strings"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 const CnovaPrefixImg = "http://www.casasbahia-imagens.com.br/a/1/"
@@ -68,13 +71,15 @@ type ProdutoCNova struct {
 }
 
 type ProdutoGenerico struct {
-	IDProduto string   `json:"idProduto" bson:"idProduto"`
-	Nome      string   `json:"nome"`
-	Valor     float32  `json:"valor"`
-	Imagens   []string `json:"imagens"`
-	Link      string   `json:"link"`
-	Loja      string   `json:"loja"`
-	Created   string   `json:"created" bson:"created"`
+	ID        bson.ObjectId `json:"id" bson:"_id,omitempty"`
+	IDProduto string        `json:"idProduto" bson:"idProduto"`
+	Nome      string        `json:"nome"`
+	Valor     float32       `json:"valor"`
+	Imagens   []string      `json:"imagens"`
+	Link      string        `json:"link"`
+	Loja      string        `json:"loja"`
+	Cliques   int64         `json:"cliques" bson:"cliques"`
+	Created   string        `json:"created" bson:"created"`
 }
 
 func IdentifyNomeLoja(url string) (string, string) {
@@ -207,4 +212,8 @@ func LojaB2wParaGenerico(p ProdutoB2w) ProdutoGenerico {
 		produto.Imagens = append(produto.Imagens, u.Large)
 	}
 	return produto
+}
+
+func CleanUrl(url string) string {
+	return strings.Replace(url, "www.", "", 1)
 }
