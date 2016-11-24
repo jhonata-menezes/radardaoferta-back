@@ -117,6 +117,12 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 				continue
 			}
 			mesclaGenericoParaJSON(p)
+		} else if grupoLoja == "magazine luiza" {
+			p, err := sopromocao.MagazineLuizaParse(url)
+			if err != nil {
+				continue
+			}
+			mesclaGenericoParaJSON(p)
 		} else {
 			fmt.Println("nao foi identificado o site", url)
 		}
