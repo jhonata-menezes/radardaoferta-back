@@ -12,6 +12,8 @@ import (
 
 	"flag"
 
+	"encoding/hex"
+
 	sopromocao "bitbucket.org/jhonata-menezes/sopromocao-backend"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
@@ -148,7 +150,8 @@ func postNovoProduto(w http.ResponseWriter, r *http.Request) {
 
 func getRedirecionar(w http.ResponseWriter, r *http.Request) {
 	idProdutoMongo := mux.Vars(r)["id"]
-	if len(idProdutoMongo) != 12 {
+	d, err := hex.DecodeString(idProdutoMongo)
+	if err != nil || len(d) != 12 {
 		http.Error(w, "", 404)
 		return
 	}
@@ -163,7 +166,7 @@ func getRedirecionar(w http.ResponseWriter, r *http.Request) {
 	}
 	query.One(&produtosStruct)
 	w.Header().Set("Location", produtosStruct.Link)
-	w.Write([]byte(""))
+	w.WriteHeader(302)
 
 	err = collection.UpdateId(bson.ObjectIdHex(idProdutoMongo), bson.M{"$set": bson.M{"cliques": (produtosStruct.Cliques + 1)}})
 	if err != nil {
