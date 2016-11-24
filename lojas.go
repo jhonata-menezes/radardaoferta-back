@@ -97,6 +97,8 @@ func IdentifyNomeLoja(url string) (string, string) {
 		return urlLoja.Host, GrupoB2w
 	case "netshoes.com.br":
 		return urlLoja.Host, "netshoes"
+	case "magazineluiza.com.br", "m.magazineluiza.com.br":
+		return urlLoja.Host, "magazine luiza"
 	default:
 		return "", ""
 	}
