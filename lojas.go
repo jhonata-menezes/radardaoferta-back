@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"time"
+
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -93,6 +95,8 @@ func IdentifyNomeLoja(url string) (string, string) {
 		return urlLoja.Host, GrupoCnova
 	case "submarino.com.br", "americanas.com.br", "shoptime.com.br", "soubarato.com.br", "www.submarino.com.br", "www.americanas.com.br", "www.shoptime.com.br", "www.soubarato.com.br":
 		return urlLoja.Host, GrupoB2w
+	case "netshoes.com.br":
+		return urlLoja.Host, "netshoes"
 	default:
 		return "", ""
 	}
@@ -215,5 +219,16 @@ func LojaB2wParaGenerico(p ProdutoB2w) ProdutoGenerico {
 }
 
 func CleanUrl(url string) string {
+	r, err := regexp.Compile("^http://")
+	if err != nil {
+		panic(err)
+	}
+	if !r.MatchString(url) {
+		url = "https?\\:\\/\\/" + url
+	}
 	return strings.Replace(url, "www.", "", 1)
+}
+
+func TimeNowIso() string {
+	return time.Now().Format("2006-01-02 15:04:05")
 }

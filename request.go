@@ -1,10 +1,11 @@
 package sopromocao
 
-import(
-    "net/http"
-    "net"
-    "time"
-    "encoding/json"
+import (
+	"encoding/json"
+	"io"
+	"net"
+	"net/http"
+	"time"
 )
 
 //proxyUrl, _ := url.Parse("tcp://192.168.56.1:8888")
@@ -20,7 +21,6 @@ var client = &http.Client{
 	Transport: netTransport,
 }
 
-
 func Request(url string, target interface{}) {
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36")
@@ -32,4 +32,17 @@ func Request(url string, target interface{}) {
 	}
 	defer res.Body.Close()
 	json.NewDecoder(res.Body).Decode(&target)
+}
+
+func RequestBody(url string) io.ReadCloser {
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.8,en-US;q=0.6,en;q=0.4,es;q=0.2")
+	res, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer res.Body.Close()
+	return res.Body
 }

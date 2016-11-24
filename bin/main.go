@@ -109,6 +109,12 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 			} else {
 				log.Println("URL informada nao existe", url)
 			}
+		} else if grupoLoja == "netshoes" {
+			p, err := sopromocao.NetshoesParse(url)
+			if err != nil {
+				continue
+			}
+			mesclaGenericoParaJSON(p)
 		} else {
 			fmt.Println("nao foi identificado o site", url)
 		}
