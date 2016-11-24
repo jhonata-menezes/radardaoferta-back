@@ -95,10 +95,12 @@ func IdentifyNomeLoja(url string) (string, string) {
 		return urlLoja.Host, GrupoCnova
 	case "submarino.com.br", "americanas.com.br", "shoptime.com.br", "soubarato.com.br", "www.submarino.com.br", "www.americanas.com.br", "www.shoptime.com.br", "www.soubarato.com.br":
 		return urlLoja.Host, GrupoB2w
-	case "netshoes.com.br":
+	case "netshoes.com.br", "www.netshoes.com.br":
 		return urlLoja.Host, "netshoes"
-	case "magazineluiza.com.br", "m.magazineluiza.com.br":
+	case "magazineluiza.com.br", "m.magazineluiza.com.br", "www.magazineluiza.com.br", "www.m.magazineluiza.com.br":
 		return urlLoja.Host, "magazine luiza"
+	case "walmart.com.br", "m.walmart.com.br", "www.walmart.com.br", "www.m.walmart.com.br":
+		return urlLoja.Host, "walmart"
 	default:
 		return "", ""
 	}
@@ -221,12 +223,12 @@ func LojaB2wParaGenerico(p ProdutoB2w) ProdutoGenerico {
 }
 
 func CleanUrl(url string) string {
-	r, err := regexp.Compile("^http://")
+	r, err := regexp.Compile("^https?://")
 	if err != nil {
 		panic(err)
 	}
 	if !r.MatchString(url) {
-		url = "https?\\:\\/\\/" + url
+		url = "http\\:\\/\\/" + url
 	}
 	return strings.Replace(url, "www.", "", 1)
 }

@@ -123,6 +123,12 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 				continue
 			}
 			mesclaGenericoParaJSON(p)
+		} else if grupoLoja == "walmart" {
+			p, err := sopromocao.WalmartParse(url)
+			if err != nil {
+				continue
+			}
+			mesclaGenericoParaJSON(p)
 		} else {
 			fmt.Println("nao foi identificado o site", url)
 		}
