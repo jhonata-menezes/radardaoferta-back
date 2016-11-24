@@ -25,8 +25,11 @@ func ShowTelegram(token string, urls chan string) {
 		if err != nil {
 			panic(err)
 		}
+		_, loja := IdentifyNomeLoja(message.Text)
 		if validator.Host == "" {
 			msg = message.Sender.FirstName + " desculpa, mas nao foi possivel identifica link do produto, para que possa ser identificado envie apenas o link."
+		} else if loja == "" {
+			msg = message.Sender.FirstName + " o link enviado não é suportado pelo sistema, mas futuramente ela poderá ser suportada."
 		} else {
 			msg = message.Sender.FirstName + " muito obrigado por compartilhar, irei processar e posteriormente publicar no site http://www.radardaoferta.com.br/"
 			urls <- message.Text
