@@ -29,14 +29,16 @@ var limitProdutos = 50
 func main() {
 	var host string
 	var port string
+	var tokenTelegram string
 	flag.StringVar(&host, "host", "127.0.0.1", "interface")
 	flag.StringVar(&port, "port", "5001", "porta")
+	flag.StringVar(&tokenTelegram, "tokenTelegram", "", "Token do Bot do Telegram")
 	flag.Parse()
 	var wg sync.WaitGroup
 	chanUrls = make(chan string, 400)
 	wg.Add(1)
 	go processador(chanUrls, &wg)
-	go sopromocao.ShowTelegram(chanUrls)
+	go sopromocao.ShowTelegram(tokenTelegram, chanUrls)
 	//close(urls)
 	//wg.Wait()
 

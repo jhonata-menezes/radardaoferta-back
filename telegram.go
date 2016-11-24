@@ -8,10 +8,10 @@ import (
 	"github.com/tucnak/telebot"
 )
 
-//dev
+//dev 278478343:AAGXj08TDDnM6_fv7yiZNK78ZkE-UH9Zges
 //prod 233668925:AAFFwfhIY292fmTxKZgFjcFDsCF9FpwZVQ0
-func ShowTelegram(urls chan string) {
-	bot, err := telebot.NewBot("278478343:AAGXj08TDDnM6_fv7yiZNK78ZkE-UH9Zges")
+func ShowTelegram(token string, urls chan string) {
+	bot, err := telebot.NewBot(token)
 	if err != nil {
 		log.Fatalln(err)
 	}
