@@ -87,7 +87,6 @@ type ProdutoGenerico struct {
 func IdentifyNomeLoja(url string) (string, string) {
 	urlLoja, err := netUrl.Parse(url)
 	if err != nil {
-		panic(err)
 		return "", ""
 	}
 	switch urlLoja.Host {
