@@ -65,7 +65,7 @@ func TelegramCommandNovo(telegramMessage telebot.Message, m string, c chan strin
 		msg = telegramMessage.Sender.FirstName + " o link enviado não é suportado pelo sistema."
 	} else {
 		msg = telegramMessage.Sender.FirstName + " muito obrigado por compartilhar, irei processar e posteriormente publicar no site http://www.radardaoferta.com.br/"
-		c <- telegramMessage.Text
+		c <- m
 	}
 	telegramBot.SendMessage(telegramMessage.Chat, msg, nil)
 }
