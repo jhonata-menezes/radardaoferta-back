@@ -1,4 +1,4 @@
-package sopromocao
+package radardaoferta
 
 import (
 	"errors"

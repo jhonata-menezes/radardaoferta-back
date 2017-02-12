@@ -14,14 +14,14 @@ import (
 
 	"encoding/hex"
 
-	sopromocao "bitbucket.org/jhonata-menezes/sopromocao-backend"
 	"github.com/gorilla/mux"
+	radardaoferta "github.com/jhonata-menezes/radardaoferta-back"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
 var produtosJson []byte
-var produtosCollection []sopromocao.ProdutoGenerico
+var produtosCollection []radardaoferta.ProdutoGenerico
 var chanUrls chan string
 var connMongo *mgo.Session
 var limitProdutos = 50
@@ -38,7 +38,7 @@ func main() {
 	chanUrls = make(chan string, 400)
 	wg.Add(1)
 	go processador(chanUrls, &wg)
-	go sopromocao.ShowTelegram(tokenTelegram, chanUrls)
+	go radardaoferta.ShowTelegram(tokenTelegram, chanUrls)
 	//close(urls)
 	//wg.Wait()
 
@@ -70,9 +70,9 @@ func main() {
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, content-type, x-correlation-id, Origin, Host, User-Agent, Access-Control-Request-Headers, Referer, Connection, Accept, Accept-Language, Access-Control-Request-Method, Accept-Encoding")
 		//responseDefault(w)
 	})
-	router.HandleFunc("/api/produtos", getProduto).Methods("GET")
-	router.HandleFunc("/api/produtos/novo", postNovoProduto).Methods("POST")
-	router.HandleFunc("/api/produtos/redirecionar/{id}", getRedirecionar).Methods("GET")
+	router.HandleFunc("/produtos", getProduto).Methods("GET")
+	router.HandleFunc("/produtos/novo", postNovoProduto).Methods("POST")
+	router.HandleFunc("/produtos/redirecionar/{id}", getRedirecionar).Methods("GET")
 	router.NotFoundHandler = http.HandlerFunc(http404)
 
 	fmt.Println("GO! http://" + host + ":" + port)
@@ -84,47 +84,47 @@ func processador(urls <-chan string, wg *sync.WaitGroup) {
 	var nomeLoja, grupoLoja string
 
 	for url := range urls {
-		nomeLoja, grupoLoja = sopromocao.IdentifyNomeLoja(url)
+		nomeLoja, grupoLoja = radardaoferta.IdentifyNomeLoja(url)
 		fmt.Println(nomeLoja, grupoLoja)
-		if grupoLoja == sopromocao.GrupoCnova {
-			p := sopromocao.ProdutoCNova{}
+		if grupoLoja == radardaoferta.GrupoCnova {
+			p := radardaoferta.ProdutoCNova{}
 			p.Link = url
-			u := sopromocao.CnovaUrlToApi(url)
-			sopromocao.Request(u[0], &p)
-			sopromocao.Request(u[1], &p.Detalhes)
+			u := radardaoferta.CnovaUrlToApi(url)
+			radardaoferta.Request(u[0], &p)
+			radardaoferta.Request(u[1], &p.Detalhes)
 			if len(p.Valores) >= 1 {
-				Produto := sopromocao.LojaCnovaParaGenerico(p)
+				Produto := radardaoferta.LojaCnovaParaGenerico(p)
 				Produto.Created = time.Now().Format("2006-01-02 15:04:05")
 				mesclaGenericoParaJSON(Produto)
 			} else {
 				log.Println("URL informada nao existe", url)
 			}
-		} else if grupoLoja == sopromocao.GrupoB2w {
-			p := sopromocao.ProdutoB2w{}
+		} else if grupoLoja == radardaoferta.GrupoB2w {
+			p := radardaoferta.ProdutoB2w{}
 			p.Link = url
-			u := sopromocao.B2wUrlToApi(url)
-			sopromocao.Request(u, &p)
+			u := radardaoferta.B2wUrlToApi(url)
+			radardaoferta.Request(u, &p)
 			if len(p.Products) >= 1 {
-				Produto := sopromocao.LojaB2wParaGenerico(p)
+				Produto := radardaoferta.LojaB2wParaGenerico(p)
 				Produto.Created = time.Now().Format("2006-01-02 15:04:05")
 				mesclaGenericoParaJSON(Produto)
 			} else {
 				log.Println("URL informada nao existe", url)
 			}
 		} else if grupoLoja == "netshoes" {
-			p, err := sopromocao.NetshoesParse(url)
+			p, err := radardaoferta.NetshoesParse(url)
 			if err != nil {
 				continue
 			}
 			mesclaGenericoParaJSON(p)
 		} else if grupoLoja == "magazine luiza" {
-			p, err := sopromocao.MagazineLuizaParse(url)
+			p, err := radardaoferta.MagazineLuizaParse(url)
 			if err != nil {
 				continue
 			}
 			mesclaGenericoParaJSON(p)
 		} else if grupoLoja == "walmart" {
-			p, err := sopromocao.WalmartParse(url)
+			p, err := radardaoferta.WalmartParse(url)
 			if err != nil {
 				continue
 			}
@@ -156,8 +156,8 @@ func postNovoProduto(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", 400)
 		return
 	}
-	bodyUrl.Url = sopromocao.CleanUrl(bodyUrl.Url)
-	urlValidator, _ := sopromocao.IdentifyNomeLoja(bodyUrl.Url)
+	bodyUrl.Url = radardaoferta.CleanUrl(bodyUrl.Url)
+	urlValidator, _ := radardaoferta.IdentifyNomeLoja(bodyUrl.Url)
 	if urlValidator == "" {
 		w.Write([]byte("{\"status\":\"error\", \"msg\": \"URL Invalida, por favor informe apenas urls de ecommerce da lista\"}"))
 		return
@@ -175,7 +175,7 @@ func getRedirecionar(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", 404)
 		return
 	}
-	produtosStruct := sopromocao.ProdutoGenerico{}
+	produtosStruct := radardaoferta.ProdutoGenerico{}
 
 	collection := produtosColl()
 	query := collection.FindId(bson.ObjectIdHex(idProdutoMongo))
@@ -198,7 +198,7 @@ func http404(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "", 404)
 }
 
-func mesclaGenericoParaJSON(p sopromocao.ProdutoGenerico) {
+func mesclaGenericoParaJSON(p radardaoferta.ProdutoGenerico) {
 	coll := produtosColl()
 	cnt, err := coll.Find(bson.M{"loja": p.Loja, "idProduto": p.IDProduto}).Count()
 	if err != nil {
@@ -223,7 +223,7 @@ func mesclaGenericoParaJSON(p sopromocao.ProdutoGenerico) {
 
 func produtosColl() *mgo.Collection {
 	conn := connMongo.Copy()
-	return conn.DB("sopromocao").C("produtos")
+	return conn.DB("radardaoferta").C("produtos")
 }
 
 func responseDefault(w http.ResponseWriter) {
